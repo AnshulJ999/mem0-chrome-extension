@@ -1501,9 +1501,9 @@ function showButtonPopup(button: HTMLElement, message: string): void {
   if (!host) {
     return;
   }
-  let root = host.shadowRoot || host;
-  // Remove any existing popups
-  const existingPopup = root.querySelector('.mem0-button-popup');
+
+  // Remove any existing popups from document body
+  const existingPopup = document.querySelector('.mem0-button-popup');
   if (existingPopup) {
     existingPopup.remove();
   }
@@ -1515,13 +1515,16 @@ function showButtonPopup(button: HTMLElement, message: string): void {
     hoverPopover.style.display = 'none';
   }
 
+  // Get button position relative to viewport
+  const buttonRect = host.getBoundingClientRect();
+
   const popup = document.createElement('div');
   popup.className = 'mem0-button-popup';
 
   popup.style.cssText = `
-    position: absolute;
-    top: -40px;
-    left: 50%;
+    position: fixed;
+    top: ${buttonRect.top - 50}px;
+    left: ${buttonRect.left + buttonRect.width / 2}px;
     transform: translateX(-50%);
     background-color: #1C1C1E;
     border: 1px solid #27272A;
@@ -1530,8 +1533,9 @@ function showButtonPopup(button: HTMLElement, message: string): void {
     border-radius: 6px;
     font-size: 12px;
     white-space: nowrap;
-    z-index: 10001;
+    z-index: 2147483647;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
   `;
 
   popup.textContent = message;
@@ -1551,24 +1555,13 @@ function showButtonPopup(button: HTMLElement, message: string): void {
   `;
 
   popup.appendChild(arrow);
-  root.appendChild(popup);
+  document.body.appendChild(popup);
 
   setTimeout(function () {
     if (popup.isConnected) {
       popup.remove();
     }
   }, 3000);
-
-  // Position relative to button
-  // button.style.position = 'relative';
-  // button.appendChild(popup);
-
-  // // Auto-remove after 3 seconds
-  // setTimeout(() => {
-  //   if (document.body.contains(popup)) {
-  //     popup.remove();
-  //   }
-  // }, 3000);
 }
 
 // Safe no-op to prevent ReferenceError if auto-inject prefetch isn't defined elsewhere
